@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="VISIONARY Prompt Studio — Professional AI image prompt architect for Midjourney, DALL·E 3, Stable Diffusion, Adobe Firefly and Ideogram.">
+<title>VISIONARY — AI Image Prompt Architect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ═══ RESET & ROOT ═══ */
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --ink:    #0A0A0C;
+  --paper:  #F5F2EC;
+  --cream:  #EDE8DF;
+  --warm:   #D4C9B5;
+  --gold:   #C8963E;
+  --gold2:  #E8B84B;
+  --rust:   #C0441E;
+  --teal:   #1A7A6E;
+  --slate:  #2A3240;
+  --smoke:  #8A8580;
+  --accent: #FF4D1C;
+  --border: rgba(10,10,12,0.10);
+  --r:      6px;
+}
+ 
+html { font-size: 16px; }
+ 
+body {
+  font-family: 'Syne', 'Helvetica Neue', sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+ 
+/* ═══ NOISE TEXTURE OVERLAY ═══ */
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.55;
+}
+ 
+/* ═══ LAYOUT ═══ */
+.page { position: relative; z-index: 1; max-width: 1120px; margin: 0 auto; padding: 0 28px 80px; }
+ 
+/* ═══ MASTHEAD ═══ */
+.masthead {
+  padding: 48px 0 36px;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 44px;
+}
+.masthead-left { }
+.masthead-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; font-weight: 400;
+  letter-spacing: 4px; color: var(--smoke);
+  text-transform: uppercase; margin-bottom: 10px;
+}
+.masthead-title {
+  font-family: 'Bebas Neue', 'Arial Black', sans-serif;
+  font-size: clamp(52px, 7vw, 88px);
+  line-height: 0.9; color: var(--ink);
+  letter-spacing: 1px;
+}
+.masthead-title span {
+  color: var(--gold);
+  display: block;
+}
+.masthead-right {
+  text-align: right;
+  padding-bottom: 6px;
+}
+.masthead-desc {
+  font-family: 'DM Serif Display', Georgia, serif;
+  font-style: italic;
+  font-size: 14px; color: var(--smoke);
+  max-width: 240px; line-height: 1.65;
+}
+.version-badge {
+  display: inline-block;
+  margin-top: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px;
+  color: var(--gold); border: 1px solid var(--gold);
+  padding: 3px 8px; border-radius: 2px;
+  text-transform: uppercase;
+}
+ 
+/* ═══ TWO-COLUMN GRID ═══ */
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 28px;
+  align-items: start;
+}
+@media (max-width: 800px) {
+  .grid { grid-template-columns: 1fr; }
+  .two-col-fields { grid-template-columns: 1fr; }
+  .three-col-fields { grid-template-columns: 1fr; }
+  .masthead { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .masthead-right { text-align: left; }
+  .masthead-desc { max-width: 100%; }
+}
+ 
+/* ═══ PANEL ═══ */
+.panel {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.panel-head {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 10px;
+}
+.panel-head-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--smoke);
+  background: var(--cream);
+  padding: 2px 7px; border-radius: 3px;
+  letter-spacing: 1px;
+}
+.panel-head-title {
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 2px; text-transform: uppercase;
+  color: var(--ink);
+}
+.panel-body { padding: 20px; }
+ 
+/* ═══ SECTION LABEL ═══ */
+.field-label {
+  display: block;
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--smoke); margin-bottom: 8px;
+}
+.field-hint {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 11px; color: var(--warm);
+  margin-bottom: 10px; display: block;
+}
+ 
+/* ═══ INPUTS ═══ */
+textarea, input[type="text"], select {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 13px;
+  width: 100%;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+textarea {
+  resize: vertical;
+  min-height: 88px;
+  line-height: 1.6;
+}
+textarea:focus, input[type="text"]:focus, select:focus {
+  border-color: var(--gold);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(200,150,62,0.12);
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A8580' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 13px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+ 
+/* ═══ FIELD GROUPS ═══ */
+.field { margin-bottom: 22px; }
+.field:last-child { margin-bottom: 0; }
+ 
+.two-col-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.three-col-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+}
+ 
+/* ═══ CHIP SELECTORS ═══ */
+.chip-group {
+  display: flex; flex-wrap: wrap; gap: 7px;
+  margin-top: 2px;
+}
+.chip {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 600;
+  letter-spacing: 0.5px;
+  padding: 5px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--border);
+  background: var(--paper);
+  color: var(--smoke);
+  cursor: pointer;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+  user-select: none;
+  white-space: nowrap;
+}
+.chip:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.chip:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(200,150,62,0.06);
+}
+.chip.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--paper);
+}
+.chip.active:hover {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: var(--ink);
+}
+ 
+/* ═══ SLIDER ═══ */
+.slider-row {
+  display: flex; align-items: center; gap: 12px;
+}
+input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  flex: 1; height: 3px;
+  background: var(--cream);
+  border-radius: 2px; outline: none; cursor: pointer;
+  border: none; padding: 0;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--paper);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  transition: transform 0.15s;
+}
+input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.25); }
+input[type="range"]::-moz-range-thumb {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--ink);
+  border: 2px solid var(--paper);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-track {
+  height: 3px; background: var(--cream); border-radius: 2px;
+}
+.slider-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px; color: var(--ink);
+  min-width: 28px; text-align: right; font-weight: 400;
+}
+ 
+/* ═══ DIVIDER ═══ */
+.divider {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 22px 0;
+}
+ 
+/* ═══ GENERATE BUTTON ═══ */
+.btn-generate {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 16px 24px;
+  border-radius: 8px; border: none;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px; letter-spacing: 3px;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(.4,0,.2,1);
+  position: relative; overflow: hidden;
+  margin-top: 6px;
+}
+.btn-generate::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, var(--gold) 0%, var(--rust) 100%);
+  opacity: 0; transition: opacity 0.22s;
+}
+.btn-generate:hover::before { opacity: 1; }
+.btn-generate:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(10,10,12,0.25); }
+.btn-generate:active { transform: translateY(0); }
+.btn-generate span { position: relative; z-index: 1; }
+.btn-generate .btn-icon { position: relative; z-index: 1; font-size: 18px; }
+.btn-generate.loading::after {
+  content: '';
+  position: absolute; inset: 0; z-index: 2;
+  background: var(--ink);
+  animation: shimmer 1.2s ease-in-out infinite;
+}
+@keyframes shimmer {
+  0%   { opacity: 0.7; }
+  50%  { opacity: 0.9; }
+  100% { opacity: 0.7; }
+}
+ 
+/* ═══ SECONDARY BUTTONS ═══ */
+.btn-row { display: flex; gap: 8px; margin-top: 10px; }
+.btn-sm {
+  flex: 1; padding: 9px 14px;
+  border-radius: 6px;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 700;
+  letter-spacing: 1.5px; text-transform: uppercase;
+  cursor: pointer; transition: all 0.18s;
+  border: 1px solid var(--border);
+  background: var(--paper); color: var(--smoke);
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+}
+.btn-sm:hover { border-color: var(--ink); color: var(--ink); background: var(--cream); }
+.btn-sm.danger:hover { border-color: var(--rust); color: var(--rust); }
+ 
+/* ═══ OUTPUT AREA ═══ */
+.output-panel { position: sticky; top: 24px; }
+ 
+.output-area {
+  background: var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.output-topbar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 11px 16px;
+  background: rgba(255,255,255,0.04);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.output-topbar-left {
+  display: flex; align-items: center; gap: 8px;
+}
+.output-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.output-topbar-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: rgba(255,255,255,0.35);
+  letter-spacing: 2px; text-transform: uppercase;
+}
+.output-copy {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1px;
+  color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent; border-radius: 4px;
+  padding: 4px 10px; cursor: pointer;
+  transition: all 0.18s;
+}
+.output-copy:hover { color: var(--gold2); border-color: var(--gold2); }
+.output-copy.copied { color: #4ADE80; border-color: #4ADE80; }
+ 
+.prompt-output {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; font-weight: 300;
+  line-height: 1.75;
+  color: rgba(255,255,255,0.82);
+  padding: 18px 18px 20px;
+  min-height: 160px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.prompt-output.empty {
+  color: rgba(255,255,255,0.2);
+  font-style: italic;
+}
+ 
+/* Typed cursor animation */
+.cursor {
+  display: inline-block;
+  width: 2px; height: 14px;
+  background: var(--gold2);
+  margin-left: 2px; vertical-align: text-bottom;
+  animation: blink 0.9s step-end infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+ 
+/* ═══ PROMPT METRICS ═══ */
+.metrics-row {
+  display: grid; grid-template-columns: repeat(3,1fr);
+  gap: 1px; background: rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.metric {
+  padding: 10px 14px;
+  background: rgba(255,255,255,0.02);
+  text-align: center;
+}
+.metric-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px; color: var(--gold2);
+  line-height: 1;
+}
+.metric-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 1.5px;
+  color: rgba(255,255,255,0.25);
+  text-transform: uppercase; margin-top: 2px;
+}
+ 
+/* ═══ VARIATION HISTORY ═══ */
+.history-panel { margin-top: 14px; }
+.history-title {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2.5px; text-transform: uppercase;
+  color: var(--smoke); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.history-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.history-item {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  padding: 10px 13px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+}
+.history-item:hover { border-color: var(--gold); transform: translateX(2px); }
+.history-item-text {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; color: var(--smoke);
+  line-height: 1.6;
+  display: -webkit-box; -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical; overflow: hidden;
+}
+.history-item-meta {
+  font-size: 9px; color: var(--warm);
+  margin-top: 5px; letter-spacing: 1px;
+  display: flex; justify-content: space-between;
+}
+.history-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px; letter-spacing: 1px;
+  padding: 1px 6px; border-radius: 3px;
+  background: var(--cream); color: var(--smoke);
+}
+ 
+/* ═══ PLATFORM TABS ═══ */
+.tab-row {
+  display: flex; gap: 0;
+  background: var(--cream);
+  border-radius: 7px; padding: 3px;
+  margin-bottom: 18px;
+}
+.tab {
+  flex: 1; padding: 7px 8px;
+  border-radius: 5px; border: none;
+  background: transparent;
+  font-family: 'Syne', sans-serif;
+  font-size: 11px; font-weight: 600;
+  color: var(--smoke); cursor: pointer;
+  transition: all 0.18s;
+  text-align: center;
+}
+.tab.active {
+  background: var(--ink); color: var(--paper);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+}
+ 
+/* ═══ QUALITY METER ═══ */
+.quality-bar-wrap {
+  margin-top: 6px; margin-bottom: 18px;
+}
+.quality-label-row {
+  display: flex; justify-content: space-between;
+  margin-bottom: 5px;
+}
+.quality-label {
+  font-size: 10px; font-weight: 700;
+  letter-spacing: 2px; color: var(--smoke); text-transform: uppercase;
+}
+.quality-score {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--gold); font-weight: 400;
+}
+.quality-track {
+  height: 4px; background: var(--cream);
+  border-radius: 2px; overflow: hidden;
+}
+.quality-fill {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--teal), var(--gold), var(--rust));
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(.4,0,.2,1);
+}
+ 
+/* ═══ SURPRISE BUTTON ═══ */
+.btn-surprise {
+  width: 100%; padding: 10px;
+  border-radius: 6px; border: 1px dashed var(--warm);
+  background: transparent;
+  font-family: 'DM Serif Display', serif;
+  font-style: italic;
+  font-size: 13px; color: var(--smoke);
+  cursor: pointer; transition: all 0.2s;
+  margin-bottom: 14px;
+}
+.btn-surprise:hover {
+  border-color: var(--gold); color: var(--gold);
+  background: rgba(200,150,62,0.04);
+}
+ 
+/* ═══ TOAST ═══ */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  background: var(--ink); color: var(--paper);
+  font-family: 'Syne', sans-serif;
+  font-size: 13px; font-weight: 600;
+  padding: 12px 24px; border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.35);
+  z-index: 100;
+  transition: transform 0.35s cubic-bezier(.34,1.56,.64,1);
+  white-space: nowrap;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+ 
+/* ═══ FOOTER ═══ */
+.footer-note {
+  margin-top: 48px; padding-top: 20px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.footer-note p {
+  font-family: 'DM Serif Display', serif;
+  font-style: italic; font-size: 12px; color: var(--warm);
+}
+.footer-note span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: 2px; color: var(--warm);
+}
+</style>
+</head>
+<body>
+ 
+<div class="page">
+ 
+  <!-- ═══ MASTHEAD ═══ -->
+  <header class="masthead">
+    <div class="masthead-left">
+      <div class="masthead-eyebrow">Professional Image Prompt Architect</div>
+      <div class="masthead-title">
+        VISIONARY
+        <span>PROMPT STUDIO</span>
+      </div>
+    </div>
+    <div class="masthead-right">
+      <div class="masthead-desc">Craft prompts that direct AI like a seasoned cinematographer directing light.</div>
+      <div class="version-badge">v3.0 · Director's Cut</div>
+    </div>
+  </header>
+ 
+  <!-- ═══ MAIN GRID ═══ -->
+  <div class="grid">
+ 
+    <!-- ─── LEFT: INPUT PANELS ─── -->
+    <div class="left-col">
+ 
+      <!-- Platform Selector -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">00</span>
+          <span class="panel-head-title">Target Platform</span>
+        </div>
+        <div class="panel-body" style="padding-bottom:16px">
+          <div class="tab-row" id="platformTabs">
+            <button class="tab active" data-val="midjourney">Midjourney</button>
+            <button class="tab" data-val="dalle">DALL·E 3</button>
+            <button class="tab" data-val="stable">Stable Diff</button>
+            <button class="tab" data-val="firefly">Firefly</button>
+            <button class="tab" data-val="ideogram">Ideogram</button>
+          </div>
+          <button class="btn-surprise" id="btnSurprise">
+            ✦ &nbsp;Surprise me — randomize all settings
+          </button>
+        </div>
+      </div>
+ 
+      <!-- 01: Subject & Scene -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">01</span>
+          <span class="panel-head-title">Subject &amp; Scene</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="field-label" for="subject">Core Subject</label>
+            <span class="field-hint">Who or what is the center of attention?</span>
+            <textarea id="subject" rows="2" placeholder="e.g. A confident female life coach in her 40s, blazer, natural light, home studio"></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label" for="scene">Environment &amp; Setting</label>
+            <textarea id="scene" rows="2" placeholder="e.g. Minimalist loft office, floor-to-ceiling windows, city skyline at golden hour"></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label" for="action">Action / Narrative</label>
+            <textarea id="action" rows="2" placeholder="e.g. Writing in journal, mid-conversation, hands gesturing, looking directly at camera"></textarea>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- 02: Visual Style -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">02</span>
+          <span class="panel-head-title">Visual Style &amp; Medium</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="field-label">Style Genre</label>
+            <div class="chip-group" id="styleChips">
+              <div class="chip active" role="button" tabindex="0" data-val="Cinematic photography">Cinematic Photo</div>
+              <div class="chip" role="button" tabindex="0" data-val="Editorial fashion photography">Editorial</div>
+              <div class="chip" role="button" tabindex="0" data-val="Hyperrealistic 3D render">3D Render</div>
+              <div class="chip" role="button" tabindex="0" data-val="Oil painting, impasto texture">Oil Painting</div>
+              <div class="chip" role="button" tabindex="0" data-val="Digital illustration, vector art">Vector Art</div>
+              <div class="chip" role="button" tabindex="0" data-val="Watercolor, loose brushwork">Watercolor</div>
+              <div class="chip" role="button" tabindex="0" data-val="Brutalist graphic design">Brutalist</div>
+              <div class="chip" role="button" tabindex="0" data-val="Luxury brand campaign photography">Luxury Brand</div>
+              <div class="chip" role="button" tabindex="0" data-val="Documentary street photography">Documentary</div>
+              <div class="chip" role="button" tabindex="0" data-val="Double exposure surreal composite">Double Exposure</div>
+              <div class="chip" role="button" tabindex="0" data-val="Vintage 35mm film photography">35mm Film</div>
+              <div class="chip" role="button" tabindex="0" data-val="Concept art, matte painting">Concept Art</div>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="field">
+            <label class="field-label">Artistic Reference</label>
+            <span class="field-hint">Director, photographer, or artist whose style to channel</span>
+            <input type="text" id="artist" placeholder="e.g. Peter Lindbergh, Annie Leibovitz, Gregory Crewdson, Wes Anderson">
+          </div>
+          <div class="two-col-fields">
+            <div class="field">
+              <label class="field-label" for="era">Era / Decade</label>
+              <select id="era">
+                <option value="">— Timeless —</option>
+                <option value="1920s Art Deco aesthetic">1920s Art Deco</option>
+                <option value="1950s mid-century modern">1950s Mid-Century</option>
+                <option value="1970s warm film grain">1970s Warm Film</option>
+                <option value="1980s neon retrofuturism">1980s Neon Retro</option>
+                <option value="1990s editorial grunge">1990s Grunge</option>
+                <option value="2000s early digital era">2000s Digital</option>
+                <option value="Contemporary 2024">Contemporary</option>
+                <option value="Near-future sci-fi">Near-Future</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="medium">Medium / Render</label>
+              <select id="medium">
+                <option value="">— Auto —</option>
+                <option value="Shot on Hasselblad 500C/M">Hasselblad Medium Format</option>
+                <option value="Shot on Leica M6, 35mm f/1.4">Leica 35mm</option>
+                <option value="Shot on Canon EOS 5D Mark IV">Canon DSLR</option>
+                <option value="Shot on Phase One IQ4 150MP">Phase One 150MP</option>
+                <option value="Rendered in Cinema 4D + Octane">Cinema 4D Octane</option>
+                <option value="Rendered in Blender Cycles">Blender Cycles</option>
+                <option value="Unreal Engine 5 Lumen">Unreal Engine 5</option>
+                <option value="Painted with thick impasto brushstrokes on canvas">Canvas Impasto</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- 03: Lighting & Mood -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">03</span>
+          <span class="panel-head-title">Lighting &amp; Atmosphere</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="field-label">Lighting Setup</label>
+            <div class="chip-group" id="lightChips">
+              <div class="chip active" role="button" tabindex="0" data-val="Soft golden hour sunlight, warm rim lighting">Golden Hour</div>
+              <div class="chip" role="button" tabindex="0" data-val="Dramatic Rembrandt lighting, deep shadows">Rembrandt</div>
+              <div class="chip" role="button" tabindex="0" data-val="Clean softbox studio lighting">Studio Soft</div>
+              <div class="chip" role="button" tabindex="0" data-val="Neon sign ambient glow, cyberpunk haze">Neon Glow</div>
+              <div class="chip" role="button" tabindex="0" data-val="Harsh midday sunlight, high contrast">Harsh Sun</div>
+              <div class="chip" role="button" tabindex="0" data-val="Overcast diffused light, even exposure">Overcast</div>
+              <div class="chip" role="button" tabindex="0" data-val="Candlelight, warm intimate flicker">Candlelight</div>
+              <div class="chip" role="button" tabindex="0" data-val="Cinematic three-point lighting">3-Point Cinema</div>
+              <div class="chip" role="button" tabindex="0" data-val="Moonlight, cool blue shadows">Moonlight</div>
+              <div class="chip" role="button" tabindex="0" data-val="Volumetric god rays through fog">God Rays</div>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="two-col-fields">
+            <div class="field">
+              <label class="field-label" for="mood">Emotional Mood</label>
+              <select id="mood">
+                <option value="Empowering and aspirational" selected>Empowering</option>
+                <option value="Intimate and vulnerable">Intimate</option>
+                <option value="Confident and authoritative">Confident</option>
+                <option value="Playful and energetic">Playful</option>
+                <option value="Mysterious and contemplative">Mysterious</option>
+                <option value="Luxurious and refined">Luxurious</option>
+                <option value="Raw and documentary-real">Raw / Documentary</option>
+                <option value="Nostalgic and wistful">Nostalgic</option>
+                <option value="Tense and dramatic">Dramatic Tension</option>
+                <option value="Serene and meditative">Serene</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="timeofday">Time &amp; Weather</label>
+              <select id="timeofday">
+                <option value="">— Any —</option>
+                <option value="golden hour, magic light">Golden Hour</option>
+                <option value="blue hour, twilight">Blue Hour Twilight</option>
+                <option value="deep night, city lights">Night City</option>
+                <option value="bright midday sun">Midday Bright</option>
+                <option value="foggy morning mist">Foggy Morning</option>
+                <option value="overcast storm clouds">Storm Overcast</option>
+                <option value="dawn, first light">Dawn First Light</option>
+                <option value="sunset, dramatic sky">Dramatic Sunset</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- 04: Color & Palette -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">04</span>
+          <span class="panel-head-title">Color Palette &amp; Tone</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="field-label">Color Direction</label>
+            <div class="chip-group" id="colorChips">
+              <div class="chip" role="button" tabindex="0" data-val="Warm terracotta, burnt sienna, sandy beige palette">Terracotta Warm</div>
+              <div class="chip active" role="button" tabindex="0" data-val="Deep navy, electric cyan, warm white palette">Navy & Cyan</div>
+              <div class="chip" role="button" tabindex="0" data-val="Monochromatic black and white, silver tones">B&W Mono</div>
+              <div class="chip" role="button" tabindex="0" data-val="Earthy sage green, cream, dusty rose">Sage & Rose</div>
+              <div class="chip" role="button" tabindex="0" data-val="Bold primary colors, high saturation">Bold Primary</div>
+              <div class="chip" role="button" tabindex="0" data-val="Muted desaturated film tones, faded colors">Muted Film</div>
+              <div class="chip" role="button" tabindex="0" data-val="Neon magenta, electric blue, deep purple">Neon Dark</div>
+              <div class="chip" role="button" tabindex="0" data-val="Rich jewel tones: emerald, sapphire, ruby">Jewel Tones</div>
+              <div class="chip" role="button" tabindex="0" data-val="Minimal white, off-white, soft grey">Clean Minimal</div>
+              <div class="chip" role="button" tabindex="0" data-val="Vibrant tropical: coral, turquoise, gold">Tropical Vivid</div>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="field">
+            <label class="field-label">Color Grading</label>
+            <div class="chip-group" id="gradeChips">
+              <div class="chip active" role="button" tabindex="0" data-val="cinematic color grade">Cinematic</div>
+              <div class="chip" role="button" tabindex="0" data-val="Kodak Portra 400 film emulation">Kodak Portra</div>
+              <div class="chip" role="button" tabindex="0" data-val="Fuji Velvia cross-process">Fuji Velvia</div>
+              <div class="chip" role="button" tabindex="0" data-val="Teal and orange Hollywood grade">Teal & Orange</div>
+              <div class="chip" role="button" tabindex="0" data-val="Bleach bypass, desaturated highlights">Bleach Bypass</div>
+              <div class="chip" role="button" tabindex="0" data-val="Vintage faded, lifted blacks">Vintage Faded</div>
+              <div class="chip" role="button" tabindex="0" data-val="High key, clean overexposed whites">High Key</div>
+              <div class="chip" role="button" tabindex="0" data-val="Low key, deep crushed blacks">Low Key</div>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- 05: Composition & Camera -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">05</span>
+          <span class="panel-head-title">Composition &amp; Camera</span>
+        </div>
+        <div class="panel-body">
+          <div class="two-col-fields">
+            <div class="field">
+              <label class="field-label" for="shot">Shot Type</label>
+              <select id="shot">
+                <option value="medium portrait shot" selected>Medium Portrait</option>
+                <option value="tight close-up, face detail">Tight Close-Up</option>
+                <option value="wide establishing shot">Wide Establishing</option>
+                <option value="extreme close-up, macro detail">Extreme Close-Up</option>
+                <option value="full body shot">Full Body</option>
+                <option value="aerial bird's eye view">Aerial / Bird's Eye</option>
+                <option value="low angle, heroic perspective">Low Angle Heroic</option>
+                <option value="over-the-shoulder POV">Over Shoulder</option>
+                <option value="dutch angle, tilted frame">Dutch Angle</option>
+                <option value="symmetrical centered composition">Symmetrical</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="lens">Lens Character</label>
+              <select id="lens">
+                <option value="85mm f/1.4 portrait lens, shallow depth of field" selected>85mm f/1.4 Portrait</option>
+                <option value="35mm f/2.0 street lens">35mm Street</option>
+                <option value="24mm wide angle">24mm Wide</option>
+                <option value="200mm telephoto, compressed perspective">200mm Telephoto</option>
+                <option value="14mm ultra-wide, dramatic distortion">14mm Ultra-Wide</option>
+                <option value="50mm f/1.2, natural perspective">50mm f/1.2 Natural</option>
+                <option value="100mm macro, extreme detail">100mm Macro</option>
+                <option value="anamorphic lens, oval bokeh flares">Anamorphic</option>
+              </select>
+            </div>
+          </div>
+          <div class="two-col-fields">
+            <div class="field">
+              <label class="field-label" for="aspect">Aspect Ratio</label>
+              <select id="aspect">
+                <option value="--ar 16:9">16:9 Widescreen</option>
+                <option value="--ar 1:1">1:1 Square</option>
+                <option value="--ar 4:5">4:5 Portrait (Instagram)</option>
+                <option value="--ar 9:16">9:16 Vertical (Story)</option>
+                <option value="--ar 3:2">3:2 Classic Photo</option>
+                <option value="--ar 21:9">21:9 Cinematic Ultra</option>
+                <option value="--ar 4:3">4:3 Traditional</option>
+                <option value="--ar 2:3">2:3 Portrait Print</option>
+              </select>
+            </div>
+            <div class="field">
+              <label class="field-label" for="quality">Output Quality</label>
+              <select id="quality">
+                <option value="--q 2">Maximum Detail</option>
+                <option value="--q 1" selected>High Quality</option>
+                <option value="--q 0.5">Balanced Speed</option>
+                <option value="--q 2 --chaos 10">Hyper Creative</option>
+              </select>
+            </div>
+          </div>
+ 
+          <hr class="divider">
+          <div class="field">
+            <label class="field-label">Composition Rules</label>
+            <div class="chip-group" id="compChips">
+              <div class="chip active" role="button" tabindex="0" data-val="rule of thirds composition">Rule of Thirds</div>
+              <div class="chip" role="button" tabindex="0" data-val="golden ratio spiral composition">Golden Ratio</div>
+              <div class="chip" role="button" tabindex="0" data-val="negative space, breathing room">Negative Space</div>
+              <div class="chip" role="button" tabindex="0" data-val="leading lines drawing eye to subject">Leading Lines</div>
+              <div class="chip" role="button" tabindex="0" data-val="framing within a frame">Frame-in-Frame</div>
+              <div class="chip" role="button" tabindex="0" data-val="diagonal dynamic tension">Diagonal Tension</div>
+              <div class="chip" role="button" tabindex="0" data-val="symmetrical bilateral composition">Symmetry</div>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- 06: Texture & Finish -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">06</span>
+          <span class="panel-head-title">Texture, Finish &amp; Details</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="field-label">Surface Qualities</label>
+            <div class="chip-group" id="textureChips">
+              <div class="chip" role="button" tabindex="0" data-val="fine grain film texture">Film Grain</div>
+              <div class="chip active" role="button" tabindex="0" data-val="ultra sharp, 8K detail">8K Ultra Sharp</div>
+              <div class="chip" role="button" tabindex="0" data-val="soft diffusion glow, ethereal">Soft Diffusion</div>
+              <div class="chip" role="button" tabindex="0" data-val="heavy film grain, analog warmth">Heavy Grain</div>
+              <div class="chip" role="button" tabindex="0" data-val="crisp studio clean">Studio Crisp</div>
+              <div class="chip" role="button" tabindex="0" data-val="painterly texture, visible brushwork">Painterly</div>
+              <div class="chip" role="button" tabindex="0" data-val="lens flare, anamorphic streak">Lens Flare</div>
+              <div class="chip" role="button" tabindex="0" data-val="bokeh foreground elements">Bokeh Foreground</div>
+              <div class="chip" role="button" tabindex="0" data-val="motion blur, sense of movement">Motion Blur</div>
+              <div class="chip" role="button" tabindex="0" data-val="double exposure layered transparency">Layer Effect</div>
+            </div>
+          </div>
+          <hr class="divider">
+          <div class="field">
+            <label class="field-label" for="negative">Negative Prompt — Exclude</label>
+            <span class="field-hint">What to actively remove from the image</span>
+            <textarea id="negative" rows="2" placeholder="e.g. watermark, ugly, deformed hands, blurry, low quality, oversaturated, plastic skin, generic stock photo look">watermark, signature, text overlay, blurry, low resolution, overexposed, noise, grain artifacts, generic stock photo, plastic skin, doll-like, overprocessed</textarea>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- 07: Advanced Director's Notes -->
+      <div class="panel" style="margin-bottom:20px">
+        <div class="panel-head">
+          <span class="panel-head-num">07</span>
+          <span class="panel-head-title">Director's Notes</span>
+        </div>
+        <div class="panel-body">
+          <div class="field">
+            <label class="field-label" for="director">Creative Brief (Free Form)</label>
+            <span class="field-hint">Extra direction — style nuances, specific details, narrative context</span>
+            <textarea id="director" rows="3" placeholder="e.g. The image should feel like a magazine cover for an empowerment brand. Think Oprah Magazine meets Vogue. Authentic emotion over perfection. The subject should look like she's about to change the world."></textarea>
+          </div>
+          <div class="field">
+            <label class="field-label">Intensity / Stylization</label>
+            <div class="slider-row">
+              <span style="font-size:11px;color:var(--smoke);white-space:nowrap">Photorealistic</span>
+              <input type="range" id="stylize" min="0" max="100" value="65">
+              <span style="font-size:11px;color:var(--smoke);white-space:nowrap">Highly Stylized</span>
+              <span class="slider-val" id="stylizeVal">65</span>
+            </div>
+          </div>
+          <div class="field">
+            <label class="field-label">Prompt Weight / Coherence</label>
+            <div class="slider-row">
+              <span style="font-size:11px;color:var(--smoke);white-space:nowrap">Loose</span>
+              <input type="range" id="coherence" min="0" max="100" value="80">
+              <span style="font-size:11px;color:var(--smoke);white-space:nowrap">Strict</span>
+              <span class="slider-val" id="coherenceVal">80</span>
+            </div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Quality Meter -->
+      <div class="quality-bar-wrap">
+        <div class="quality-label-row">
+          <span class="quality-label">Prompt Quality Score</span>
+          <span class="quality-score" id="qualityScore">0 / 100</span>
+        </div>
+        <div class="quality-track"><div class="quality-fill" id="qualityFill"></div></div>
+      </div>
+ 
+      <!-- Generate -->
+      <button class="btn-generate" id="btnGenerate">
+        <span class="btn-icon">✦</span>
+        <span>GENERATE MASTER PROMPT</span>
+      </button>
+      <div class="btn-row">
+        <button class="btn-sm" id="btnVariation" aria-label="Generate a new variation">⟳ &nbsp;New Variation</button>
+        <button class="btn-sm" id="btnCopyAll" aria-label="Copy generated prompt">⎘ &nbsp;Copy Prompt</button>
+        <button class="btn-sm danger" id="btnReset" aria-label="Clear all fields">✕ &nbsp;Clear All</button>
+      </div>
+ 
+    </div><!-- /left-col -->
+ 
+    <!-- ─── RIGHT: OUTPUT ─── -->
+    <div class="right-col output-panel">
+ 
+      <!-- Output -->
+      <div class="output-area">
+        <div class="output-topbar">
+          <div class="output-topbar-left">
+            <div class="output-dot" style="background:#ff5f57"></div>
+            <div class="output-dot" style="background:#febc2e"></div>
+            <div class="output-dot" style="background:#28c840"></div>
+            <span class="output-topbar-title" style="margin-left:6px">prompt.txt</span>
+          </div>
+          <button class="output-copy" id="copyBtn">COPY</button>
+        </div>
+        <div class="prompt-output empty" id="promptOutput">// Your master prompt will appear here...
+ 
+// Fill in the fields on the left and
+// click GENERATE MASTER PROMPT
+ 
+// Pro tip: Use "Surprise me" to
+// instantly populate all settings</div>
+        <div class="metrics-row">
+          <div class="metric">
+            <div class="metric-val" id="mWords">—</div>
+            <div class="metric-lbl">Words</div>
+          </div>
+          <div class="metric">
+            <div class="metric-val" id="mChars">—</div>
+            <div class="metric-lbl">Chars</div>
+          </div>
+          <div class="metric">
+            <div class="metric-val" id="mScore">—</div>
+            <div class="metric-lbl">Quality</div>
+          </div>
+        </div>
+      </div>
+ 
+      <!-- Platform Note -->
+      <div id="platformNote" style="margin-top:10px;padding:10px 14px;background:#fff;border:1px solid var(--border);border-radius:7px;font-size:10.5px;color:var(--smoke);font-family:'JetBrains Mono',monospace;line-height:1.6;display:none;"></div>
+ 
+      <!-- Variation History -->
+      <div class="history-panel">
+        <div class="history-title">Variation History</div>
+        <div id="historyList">
+          <div style="font-family:'DM Serif Display',serif;font-style:italic;font-size:12px;color:var(--warm);text-align:center;padding:20px 0">
+            Generate your first prompt to begin
+          </div>
+        </div>
+      </div>
+ 
+    </div><!-- /right-col -->
+ 
+  </div><!-- /grid -->
+ 
+  <div class="footer-note">
+    <p>Craft every prompt like a director briefing their cinematographer.</p>
+    <span>VISIONARY PROMPT STUDIO · DIRECTOR'S CUT</span>
+  </div>
+ 
+</div><!-- /page -->
+ 
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+ 
+<script>
+/* ═══════════════════════════════════════════
+   VISIONARY PROMPT STUDIO — FULL LOGIC
+   Professional AI Image Prompt Generator
+═══════════════════════════════════════════ */
+ 
+// ── STATE ────────────────────────────────────
+let currentPlatform = 'midjourney';
+let promptHistory = [];
+let generating = false;
+ 
+// ── DOM REFS ─────────────────────────────────
+const btnGenerate  = document.getElementById('btnGenerate');
+const btnVariation = document.getElementById('btnVariation');
+const btnCopyAll   = document.getElementById('btnCopyAll');
+const btnReset     = document.getElementById('btnReset');
+const btnSurprise  = document.getElementById('btnSurprise');
+const copyBtn      = document.getElementById('copyBtn');
+const promptOutput = document.getElementById('promptOutput');
+const historyList  = document.getElementById('historyList');
+const qualityFill  = document.getElementById('qualityFill');
+const qualityScore = document.getElementById('qualityScore');
+const platformNote = document.getElementById('platformNote');
+const mWords = document.getElementById('mWords');
+const mChars = document.getElementById('mChars');
+const mScore = document.getElementById('mScore');
+const toast  = document.getElementById('toast');
+ 
+// ── PLATFORM TABS ────────────────────────────
+document.getElementById('platformTabs').addEventListener('click', e => {
+  const tab = e.target.closest('.tab');
+  if (!tab) return;
+  document.querySelectorAll('#platformTabs .tab').forEach(t => t.classList.remove('active'));
+  tab.classList.add('active');
+  currentPlatform = tab.dataset.val;
+  updatePlatformNote();
+  updateQuality();
+});
+ 
+const PLATFORM_NOTES = {
+  midjourney: '💡 MJ tip: --ar, --s, --q, --chaos params appended automatically. Works best with descriptive, comma-separated visual terms.',
+  dalle:      '💡 DALL·E 3 tip: Prefers full natural language sentences. Avoid parameter syntax like --ar. Be specific about style and mood.',
+  stable:     '💡 Stable Diffusion tip: Add (keyword:1.3) for weighted emphasis. Negative prompts are crucial for SD quality.',
+  firefly:    '💡 Adobe Firefly tip: Responds well to Adobe Stock style descriptions. Mention "safe for commercial use" in your prompt.',
+  ideogram:   '💡 Ideogram tip: Excellent at typography. If you need text in image, specify font style and text content explicitly.',
+};
+ 
+function updatePlatformNote() {
+  platformNote.style.display = 'block';
+  platformNote.textContent = PLATFORM_NOTES[currentPlatform] || '';
+}
+ 
+// ── CHIP SELECTORS ───────────────────────────
+document.querySelectorAll('.chip-group').forEach(group => {
+  group.addEventListener('click', e => {
+    const chip = e.target.closest('.chip');
+    if (!chip) return;
+    chip.classList.toggle('active');
+    updateQuality();
+  });
+  // Keyboard accessibility for chip divs
+  group.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
+      e.preventDefault();
+      chip.classList.toggle('active');
+      updateQuality();
+    }
+  });
+});
+ 
+function getActiveChips(groupId) {
+  return [...document.querySelectorAll(`#${groupId} .chip.active`)]
+    .map(c => c.dataset.val);
+}
+ 
+// ── SLIDERS ──────────────────────────────────
+document.getElementById('stylize').addEventListener('input', function() {
+  document.getElementById('stylizeVal').textContent = this.value;
+  updateQuality();
+});
+document.getElementById('coherence').addEventListener('input', function() {
+  document.getElementById('coherenceVal').textContent = this.value;
+  updateQuality();
+});
+ 
+// ── QUALITY SCORE ────────────────────────────
+function updateQuality() {
+  let score = 0;
+  const subject   = document.getElementById('subject').value.trim();
+  const scene     = document.getElementById('scene').value.trim();
+  const action    = document.getElementById('action').value.trim();
+  const artist    = document.getElementById('artist').value.trim();
+  const director  = document.getElementById('director').value.trim();
+  const negative  = document.getElementById('negative').value.trim();
+ 
+  if (subject)  score += 20;
+  if (scene)    score += 12;
+  if (action)   score += 8;
+  if (artist)   score += 10;
+  if (director) score += 8;
+  if (negative) score += 5;
+ 
+  const styles    = getActiveChips('styleChips').length;
+  const lights    = getActiveChips('lightChips').length;
+  const colors    = getActiveChips('colorChips').length;
+  const grades    = getActiveChips('gradeChips').length;
+  const comps     = getActiveChips('compChips').length;
+  const textures  = getActiveChips('textureChips').length;
+ 
+  score += Math.min(styles * 4, 8);
+  score += Math.min(lights * 4, 6);
+  score += Math.min(colors * 4, 6);
+  score += Math.min(grades * 3, 5);
+  score += Math.min(comps * 3, 5);
+  score += Math.min(textures * 3, 5);
+ 
+  if (document.getElementById('era').value)     score += 3;
+  if (document.getElementById('medium').value)  score += 4;
+  if (document.getElementById('mood').value)    score += 3;
+ 
+  score = Math.min(score, 100);
+ 
+  qualityFill.style.width = score + '%';
+  qualityScore.textContent = score + ' / 100';
+ 
+  // Color shift based on score
+  if (score < 30) qualityFill.style.background = 'var(--rust)';
+  else if (score < 60) qualityFill.style.background = 'linear-gradient(90deg,var(--gold),var(--gold2))';
+  else qualityFill.style.background = 'linear-gradient(90deg,var(--teal),var(--gold),var(--rust))';
+}
+ 
+// Live quality update on all inputs
+document.querySelectorAll('input,textarea,select').forEach(el => {
+  el.addEventListener('input', updateQuality);
+});
+updateQuality();
+ 
+// ── PROMPT ASSEMBLY ENGINE ───────────────────
+ 
+function buildPrompt(variation) {
+  variation = variation || 0;
+ 
+  const subject   = document.getElementById('subject').value.trim();
+  const scene     = document.getElementById('scene').value.trim();
+  const action    = document.getElementById('action').value.trim();
+  const artist    = document.getElementById('artist').value.trim();
+  const era       = document.getElementById('era').value;
+  const medium    = document.getElementById('medium').value;
+  const mood      = document.getElementById('mood').value;
+  const timeofday = document.getElementById('timeofday').value;
+  const shot      = document.getElementById('shot').value;
+  const lens      = document.getElementById('lens').value;
+  const aspect    = document.getElementById('aspect').value;
+  const quality   = document.getElementById('quality').value;
+  const director  = document.getElementById('director').value.trim();
+  const negative  = document.getElementById('negative').value.trim();
+  const stylize   = parseInt(document.getElementById('stylize').value);
+  const coherence = parseInt(document.getElementById('coherence').value);
+ 
+  const styles    = getActiveChips('styleChips');
+  const lights    = getActiveChips('lightChips');
+  const colors    = getActiveChips('colorChips');
+  const grades    = getActiveChips('gradeChips');
+  const comps     = getActiveChips('compChips');
+  const textures  = getActiveChips('textureChips');
+ 
+  // ── VARIATION MODIFIERS ──
+  const variationSeeds = [
+    '', 'highly detailed, award-winning', 'cinematic masterpiece', 
+    'editorial quality, prize-winning', 'stunning composition',
+    'breathtaking detail, gallery quality'
+  ];
+  const variationMod = variationSeeds[variation % variationSeeds.length];
+ 
+  // ── PLATFORM-SPECIFIC ASSEMBLY ──
+  let parts = [];
+  let suffix = '';
+ 
+  if (currentPlatform === 'midjourney') {
+    // MJ: comma-separated descriptors, params at end
+    const mj_s = Math.round(stylize * 10); // 0-1000
+    const mj_seed = variation > 0 ? ` --seed ${Math.floor(Math.random()*99999)}` : '';
+ 
+    if (subject)   parts.push(subject);
+    if (action)    parts.push(action);
+    if (scene)     parts.push(scene);
+    if (styles.length)  parts.push(styles.join(', '));
+    if (lights.length)  parts.push(lights.join(', '));
+    if (timeofday) parts.push(timeofday);
+    if (colors.length)  parts.push(colors.join(', '));
+    if (grades.length)  parts.push(grades.join(', '));
+    if (comps.length)   parts.push(comps.join(', '));
+    if (textures.length) parts.push(textures.join(', '));
+    if (mood)      parts.push(mood);
+    if (era)       parts.push(era);
+    if (medium)    parts.push(medium);
+    if (shot)      parts.push(shot);
+    if (lens)      parts.push(lens);
+    if (artist)    parts.push(`in the style of ${artist}`);
+    if (director)  parts.push(director);
+    if (variationMod) parts.push(variationMod);
+ 
+    suffix = `\n\n${aspect} ${quality} --s ${mj_s}${mj_seed}`;
+    if (negative) suffix += `\n--no ${negative}`;
+ 
+  } else if (currentPlatform === 'dalle') {
+    // DALL·E 3: full natural language sentences
+    let sentences = [];
+ 
+    if (subject || action || scene) {
+      let scene_s = '';
+      if (subject) scene_s += subject;
+      if (action)  scene_s += `, ${action}`;
+      if (scene)   scene_s += `. The setting is ${scene}`;
+      sentences.push(scene_s + '.');
+    }
+    if (styles.length || medium) {
+      sentences.push(`The image is rendered as ${[...styles, medium].filter(Boolean).join(', ')}.`);
+    }
+    if (lights.length || timeofday) {
+      sentences.push(`Lighting: ${[...lights, timeofday].filter(Boolean).join(', ')}.`);
+    }
+    if (colors.length || grades.length) {
+      sentences.push(`Color palette: ${[...colors, ...grades].filter(Boolean).join(', ')}.`);
+    }
+    if (mood)  sentences.push(`The mood is ${mood}.`);
+    if (era)   sentences.push(`${era} aesthetic.`);
+    if (shot)  sentences.push(`Shot as a ${shot}.`);
+    if (lens)  sentences.push(`${lens}.`);
+    if (comps.length)    sentences.push(`Composition: ${comps.join(', ')}.`);
+    if (textures.length) sentences.push(`Surface quality: ${textures.join(', ')}.`);
+    if (artist)  sentences.push(`Inspired by the visual style of ${artist}.`);
+    if (director) sentences.push(director);
+    if (variationMod) sentences.push(variationMod + '.');
+ 
+    parts = sentences;
+ 
+  } else if (currentPlatform === 'stable') {
+    // SD: weighted prompts, structured with emphasis
+    if (subject)   parts.push(`(${subject}:1.4)`);
+    if (action)    parts.push(`(${action}:1.2)`);
+    if (scene)     parts.push(scene);
+    if (styles.length)   parts.push(styles.map(s=>`(${s}:1.3)`).join(', '));
+    if (lights.length)   parts.push(lights.map(l=>`(${l}:1.2)`).join(', '));
+    if (timeofday) parts.push(timeofday);
+    if (colors.length)   parts.push(colors.join(', '));
+    if (grades.length)   parts.push(grades.join(', '));
+    if (comps.length)    parts.push(comps.join(', '));
+    if (textures.length) parts.push(textures.map(t=>`(${t}:1.1)`).join(', '));
+    if (mood)      parts.push(`(${mood}:1.2)`);
+    if (era)       parts.push(era);
+    if (medium)    parts.push(`(${medium}:1.3)`);
+    if (shot)      parts.push(shot);
+    if (lens)      parts.push(lens);
+    if (artist)    parts.push(`(by ${artist}:1.35)`);
+    if (director)  parts.push(director);
+    if (variationMod) parts.push(variationMod);
+ 
+    if (negative) suffix = `\n\nNEGATIVE PROMPT:\n${negative}`;
+ 
+  } else {
+    // Generic (Firefly / Ideogram / other)
+    if (subject)   parts.push(subject);
+    if (action)    parts.push(action);
+    if (scene)     parts.push(scene);
+    if (styles.length)   parts.push(styles.join(', '));
+    if (lights.length)   parts.push(lights.join(', '));
+    if (timeofday) parts.push(timeofday);
+    if (colors.length)   parts.push(colors.join(', '));
+    if (grades.length)   parts.push(grades.join(', '));
+    if (comps.length)    parts.push(comps.join(', '));
+    if (textures.length) parts.push(textures.join(', '));
+    if (mood)      parts.push(mood);
+    if (era)       parts.push(era);
+    if (medium)    parts.push(medium);
+    if (shot)      parts.push(shot);
+    if (lens)      parts.push(lens);
+    if (artist)    parts.push(`style inspired by ${artist}`);
+    if (director)  parts.push(director);
+    if (variationMod) parts.push(variationMod);
+    if (negative) suffix = `\n\nAVOID: ${negative}`;
+  }
+ 
+  // Filter empties
+  parts = parts.filter(Boolean);
+ 
+  if (parts.length === 0) return null;
+ 
+  const separator = currentPlatform === 'dalle' ? '\n' : ', ';
+  const prompt = parts.join(separator) + suffix;
+ 
+  return prompt;
+}
+ 
+// ── TYPEWRITER EFFECT ────────────────────────
+function typewriterSet(el, text, speed) {
+  speed = speed || 8;
+  // Remove old cursor BEFORE wiping content
+  const oldCursor = el.querySelector('.cursor');
+  if (oldCursor) oldCursor.remove();
+ 
+  el.classList.remove('empty');
+  el.textContent = '';
+ 
+  let i = 0;
+  let cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  el.appendChild(cursor);
+ 
+  const interval = setInterval(() => {
+    if (i < text.length) {
+      el.insertBefore(document.createTextNode(text[i]), cursor);
+      i++;
+      el.scrollTop = el.scrollHeight;
+    } else {
+      clearInterval(interval);
+      generating = false;
+      btnGenerate.classList.remove('loading');
+    }
+  }, speed);
+}
+ 
+// ── GENERATE ─────────────────────────────────
+function generate(variation) {
+  if (generating) return;
+  variation = variation || 0;
+ 
+  const prompt = buildPrompt(variation);
+ 
+  if (!prompt) {
+    showToast('⚠ Add a subject or scene description first');
+    return;
+  }
+ 
+  generating = true;
+  btnGenerate.classList.add('loading');
+ 
+  // Update output
+  updatePlatformNote();
+  typewriterSet(promptOutput, prompt, variation > 0 ? 5 : 8);
+ 
+  // Update metrics
+  const words = prompt.split(/\s+/).filter(Boolean).length;
+  const chars = prompt.length;
+  const score = parseInt(qualityScore.textContent) || 0;
+ 
+  mWords.textContent = words;
+  mChars.textContent = chars;
+  mScore.textContent = score > 0 ? score : '—';
+ 
+  // Save to history
+  addHistory(prompt, score);
+}
+ 
+// ── HISTORY ──────────────────────────────────
+function addHistory(prompt, score) {
+  const platform = currentPlatform;
+  const item = { prompt, score, platform, time: new Date() };
+  promptHistory.unshift(item);
+  if (promptHistory.length > 5) promptHistory.pop();
+  renderHistory();
+}
+ 
+function renderHistory() {
+  if (promptHistory.length === 0) return;
+  historyList.innerHTML = '';
+  promptHistory.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'history-item';
+    div.innerHTML = `
+      <div class="history-item-text">${escHtml(item.prompt)}</div>
+      <div class="history-item-meta">
+        <span>${timeAgo(item.time)}</span>
+        <span class="history-badge">${item.platform.toUpperCase()} · Q:${item.score}</span>
+      </div>`;
+    div.addEventListener('click', () => {
+      promptOutput.classList.remove('empty');
+      promptOutput.textContent = item.prompt;
+      const cursor = document.createElement('span');
+      cursor.className = 'cursor';
+      promptOutput.appendChild(cursor);
+      showToast('✦ Restored from history');
+    });
+    historyList.appendChild(div);
+  });
+}
+ 
+function timeAgo(date) {
+  const s = Math.floor((new Date() - date) / 1000);
+  if (s < 10) return 'just now';
+  if (s < 60) return `${s}s ago`;
+  return `${Math.floor(s/60)}m ago`;
+}
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+ 
+// ── COPY ──────────────────────────────────────
+function copyPrompt() {
+  // Extract text content excluding the cursor span
+  let text = '';
+  promptOutput.childNodes.forEach(node => {
+    if (node.nodeType === Node.TEXT_NODE) text += node.textContent;
+  });
+  text = text.trim();
+  if (!text || text.startsWith('//')) {
+    showToast('⚠ No prompt to copy yet');
+    return;
+  }
+  navigator.clipboard.writeText(text).then(() => {
+    copyBtn.textContent = 'COPIED ✓';
+    copyBtn.classList.add('copied');
+    showToast('✦ Prompt copied to clipboard');
+    setTimeout(() => {
+      copyBtn.textContent = 'COPY';
+      copyBtn.classList.remove('copied');
+    }, 2200);
+  }).catch(() => {
+    // Fallback
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); showToast('✦ Copied!'); } catch(e) {}
+    document.body.removeChild(ta);
+  });
+}
+ 
+// ── TOAST ────────────────────────────────────
+let toastTimer = null;
+function showToast(msg) {
+  toast.textContent = msg;
+  toast.classList.add('show');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+ 
+// ── RESET ────────────────────────────────────
+function resetAll() {
+  // Reset platform to midjourney
+  currentPlatform = 'midjourney';
+  document.querySelectorAll('#platformTabs .tab').forEach(t => t.classList.remove('active'));
+  document.querySelector('#platformTabs .tab[data-val="midjourney"]')?.classList.add('active');
+  updatePlatformNote();
+ 
+  document.getElementById('subject').value  = '';
+  document.getElementById('scene').value    = '';
+  document.getElementById('action').value   = '';
+  document.getElementById('artist').value   = '';
+  document.getElementById('director').value = '';
+  document.getElementById('negative').value = 'watermark, signature, text overlay, blurry, low resolution, overexposed, noise, grain artifacts, generic stock photo, plastic skin, doll-like, overprocessed';
+  document.getElementById('era').value      = '';
+  document.getElementById('medium').value   = '';
+  document.getElementById('mood').value     = 'Empowering and aspirational';
+  document.getElementById('timeofday').value = '';
+  document.getElementById('shot').value     = 'medium portrait shot';
+  document.getElementById('lens').value     = '85mm f/1.4 portrait lens, shallow depth of field';
+  document.getElementById('aspect').value   = '--ar 16:9';
+  document.getElementById('quality').value  = '--q 1';
+  document.getElementById('stylize').value  = '65';
+  document.getElementById('coherence').value = '80';
+  document.getElementById('stylizeVal').textContent  = '65';
+  document.getElementById('coherenceVal').textContent = '80';
+ 
+  // Reset chips to default
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  document.querySelector('#styleChips .chip[data-val="Cinematic photography"]')?.classList.add('active');
+  document.querySelector('#lightChips .chip[data-val="Soft golden hour sunlight, warm rim lighting"]')?.classList.add('active');
+  document.querySelector('#colorChips .chip[data-val="Deep navy, electric cyan, warm white palette"]')?.classList.add('active');
+  document.querySelector('#gradeChips .chip[data-val="cinematic color grade"]')?.classList.add('active');
+  document.querySelector('#compChips .chip[data-val="rule of thirds composition"]')?.classList.add('active');
+  document.querySelector('#textureChips .chip[data-val="ultra sharp, 8K detail"]')?.classList.add('active');
+ 
+  promptOutput.className = 'prompt-output empty';
+  promptOutput.textContent = '// Your master prompt will appear here...\n\n// Fill in the fields on the left and\n// click GENERATE MASTER PROMPT\n\n// Pro tip: Use "Surprise me" to\n// instantly populate all settings';
+ 
+  mWords.textContent = '—';
+  mChars.textContent = '—';
+  mScore.textContent = '—';
+ 
+  // Clear history
+  promptHistory = [];
+  historyList.innerHTML = '<div style="font-family:\'DM Serif Display\',serif;font-style:italic;font-size:12px;color:var(--warm);text-align:center;padding:20px 0">Generate your first prompt to begin</div>';
+ 
+  updateQuality();
+  showToast('✕ All fields cleared');
+}
+ 
+// ── SURPRISE ME ──────────────────────────────
+const SURPRISE_DATA = {
+  subjects: [
+    "A powerful female entrepreneur in her 40s, sharp tailored blazer, natural confidence",
+    "A visionary male life coach, silver-streaked hair, warm authoritative presence",
+    "A dynamic wellness coach mid-movement, athletic wear, sunrise backdrop",
+    "An elegant executive coach in her 50s, reading glasses, leather-bound journal",
+    "A charismatic mindset coach on stage, microphone, crowd of silhouettes behind",
+    "A serene meditation teacher, flowing white linen, mountain backdrop",
+    "A fierce business strategist, corner office, city panorama at dusk",
+    "A creative director turned coach, paint-stained hands, minimalist studio",
+  ],
+  scenes: [
+    "Floor-to-ceiling glass walls, city skyline, morning mist over skyscrapers",
+    "Rustic stone library, warm amber light, thousands of leather-bound books",
+    "Zen Japanese garden, cherry blossoms falling, koi pond reflection",
+    "Modern Scandinavian studio, warm wood tones, single orchid on desk",
+    "Rooftop terrace, golden hour, distant mountains, string lights",
+    "Luxurious home office, marble accents, window overlooking private garden",
+    "Cozy reading nook, exposed brick, rain against floor-length windows",
+    "Sun-drenched Mediterranean villa courtyard, terracotta pots, wisteria",
+  ],
+  actions: [
+    "Holding a leather-bound journal, writing with focused intensity",
+    "Mid-conversation, hands gesturing expressively, eyes lit with purpose",
+    "Standing at window, contemplative profile, city below",
+    "Smiling directly into camera, eyes full of warmth and knowing",
+    "Leaning forward across desk, engaged, present",
+    "Walking in slow stride, confident, looking slightly off-camera",
+    "Laughing naturally, head thrown back, completely unguarded",
+    "Holding a steaming mug, thoughtful, reading a paper document",
+  ],
+  artists: [
+    "Peter Lindbergh",
+    "Annie Leibovitz",
+    "Gregory Crewdson",
+    "Platon",
+    "Jimmy Nelson",
+    "Steve McCurry",
+    "Paolo Roversi",
+    "Richard Avedon",
+    "Helmut Newton",
+    "Juergen Teller",
+  ],
+  directors: [
+    "The image should feel like the cover of TIME Magazine's Person of the Year issue. Gravitas, warmth, humanity.",
+    "Channel a Vogue Italia editorial — fashion-forward but deeply real. Beauty as strength, not decoration.",
+    "Think National Geographic portrait — the subject looks like they have lived a thousand stories.",
+    "The feeling of a BBC documentary portrait — completely authentic, zero artifice, pure presence.",
+    "Reminiscent of a 1970s Avedon portrait in Rolling Stone — raw, intimate, culturally defining.",
+    "The visual language of Apple's Think Different campaign — iconic simplicity, world-changing energy.",
+    "A campaign image for a TED speaker — intelligence visible in the eyes, accessible brilliance.",
+    "As if shot for a Penguin Modern Classics book cover — timeless, elegant, unmistakably significant.",
+  ],
+};
+ 
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random()*arr.length)];
+}
+ 
+function surpriseMe() {
+  document.getElementById('subject').value  = pickRandom(SURPRISE_DATA.subjects);
+  document.getElementById('scene').value    = pickRandom(SURPRISE_DATA.scenes);
+  document.getElementById('action').value   = pickRandom(SURPRISE_DATA.actions);
+  document.getElementById('artist').value   = pickRandom(SURPRISE_DATA.artists);
+  document.getElementById('director').value = pickRandom(SURPRISE_DATA.directors);
+ 
+  // Randomize chips
+  document.querySelectorAll('.chip-group').forEach(group => {
+    const chips = [...group.querySelectorAll('.chip')];
+    chips.forEach(c => c.classList.remove('active'));
+    const numActive = 1 + Math.floor(Math.random()*2);
+    const shuffled = chips.sort(() => Math.random()-0.5).slice(0, numActive);
+    shuffled.forEach(c => c.classList.add('active'));
+  });
+ 
+  // Randomize selects
+  const selects = ['era','medium','mood','timeofday','shot','lens'];
+  selects.forEach(id => {
+    const el = document.getElementById(id);
+    const opts = el.options;
+    el.selectedIndex = Math.floor(Math.random()*opts.length);
+  });
+ 
+  document.getElementById('stylize').value = 30 + Math.floor(Math.random()*60);
+  document.getElementById('coherence').value = 50 + Math.floor(Math.random()*50);
+  document.getElementById('stylizeVal').textContent = document.getElementById('stylize').value;
+  document.getElementById('coherenceVal').textContent = document.getElementById('coherence').value;
+ 
+  updateQuality();
+  showToast('✦ Settings randomized — now generate!');
+}
+ 
+// ── EVENT LISTENERS ──────────────────────────
+btnGenerate.addEventListener('click', () => generate(0));
+btnVariation.addEventListener('click', () => {
+  const variation = promptHistory.length + 1;
+  generate(variation);
+});
+btnCopyAll.addEventListener('click', copyPrompt);
+copyBtn.addEventListener('click', copyPrompt);
+btnReset.addEventListener('click', resetAll);
+btnSurprise.addEventListener('click', surpriseMe);
+ 
+// Initialize
+updatePlatformNote();
+</script>
+</body>
+</html>
